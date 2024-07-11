@@ -29,12 +29,16 @@ enum CurrencyNiceNames {
   CAD = "Dollar canadien",
 }
 
-type QuoteData = {
+export type QuoteData = {
   boughtCurrency: Currency
   selledCurrency: Currency
   amount: number
   quote: number
   rate: number
+}
+
+export type QuoteDataLog = QuoteData & {
+  date: string
 }
 
 type StoreState = {
@@ -91,15 +95,28 @@ export const useStore = create<StoreState>((set, get) => ({
     const rate = state.exchangeRates[state.selledCurrency];
     const quote = state.amount * rate;
 
+    const quoteData = {
+      boughtCurrency: state.boughtCurrency,
+      selledCurrency: state.selledCurrency,
+      amount: state.amount,
+      quote,
+      rate,
+    }
+
     set({
-      quote: {
-        boughtCurrency: state.boughtCurrency,
-        selledCurrency: state.selledCurrency,
-        amount: state.amount,
-        quote,
-        rate,
-      },
+      quote: quoteData,
     });
+
+    // We can't use a hook here since this is not a React component
+    const quoteHistory = JSON.parse(localStorage.getItem('quoteHistory') || '[]');
+    quoteHistory.push({
+      ...quoteData,
+      date: new Date().toISOString(),
+    });
+    if (quoteHistory.length > 50) {
+      quoteHistory.shift();
+    }
+    localStorage.setItem('quoteHistory', JSON.stringify(quoteHistory));
   },
 }));
 
