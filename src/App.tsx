@@ -2,12 +2,9 @@ import SelectCurrency from './components/SelectCurrency';
 import AmountInput from './components/AmountInput';
 import QuoteButton from './components/QuoteButton';
 import QuoteDisplay from './components/QuoteDisplay';
-import useLocalStorage from './hooks/useLocalStorage';
-import {QuoteData} from './store/store';
 import QuoteHistory from './components/QuoteHistory';
 
 export default function App() {
-  const [quoteHistory,] = useLocalStorage<QuoteData[]>('quoteHistory', []);
   return (
     <div className="flex flex-col gap-4 w-screen h-screen px-8 py-4 md:px-24 md:py-12">
       <img 
