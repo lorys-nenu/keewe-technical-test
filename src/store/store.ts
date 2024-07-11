@@ -1,7 +1,5 @@
 import create from 'zustand';
-
-const apiKey = import.meta.env.VITE_EXCHANGE_RATE_API_KEY;
-console.log('API key:', apiKey);
+import { fetchExchangeRates } from "../services/apiService"
 
 enum Currency {
   USD = "USD",
@@ -48,7 +46,7 @@ type StoreState = {
   setBoughtCurrency: (currency: Currency) => void;
   setSelledCurrency: (currency: Currency) => void;
   setAmount: (amount: number) => void;
-  fetchExchangeRates: (baseCurrency: Currency) => Promise<void>;
+  getExchangeRates: (baseCurrency: Currency) => Promise<void>;
   askForQuote: () => void;
 };
 
@@ -60,15 +58,14 @@ export const useStore = create<StoreState>((set, get) => ({
   exchangeRates: {},
   setBoughtCurrency: (currency) => {
     set({ boughtCurrency: currency });
-    get().fetchExchangeRates(currency);  // Fetch exchange rates whenever boughtCurrency changes
+    get().getExchangeRates(currency);  // Fetch exchange rates whenever boughtCurrency changes
   },
   setSelledCurrency: (currency) => set({ selledCurrency: currency }),
   setAmount: (amount) => set({ amount: amount }),
-  fetchExchangeRates: async (baseCurrency: Currency) => {
+  getExchangeRates: async (baseCurrency: Currency) => {
     try {
-      const response = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${baseCurrency}`);
-      const data = await response.json();
-      const rates = data.conversion_rates;
+      const rates = await fetchExchangeRates(baseCurrency);
+
       set((state) => ({
         exchangeRates: {
           ...state.exchangeRates,
@@ -88,7 +85,7 @@ export const useStore = create<StoreState>((set, get) => ({
 
     // Check if exchange rates for the boughtCurrency are available, if not, fetch them
     if (!state.exchangeRates[state.boughtCurrency]) {
-      await state.fetchExchangeRates(state.boughtCurrency);
+      await state.getExchangeRates(state.boughtCurrency);
     }
 
     const rate = state.exchangeRates[state.selledCurrency];
